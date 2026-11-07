@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ResearchMate helps you discover useful web sources for your research.">
+
+    <title>ResearchMate — AI Research Assistant</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <header class="navbar">
+        <a class="brand" href="index.html">
+            <span class="brand-icon">R</span>
+            <span>ResearchMate</span>
+        </a>
+
+        <span class="nav-label">AI RESEARCH WORKSPACE</span>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <span class="eyebrow">YOUR RESEARCH STARTS HERE</span>
+
+            <h1>
+                Good research starts<br>
+                with <span>better questions.</span>
+            </h1>
+
+            <p class="subtitle">
+                Explore topics, discover useful sources, and bring
+                your next big idea into focus.
+            </p>
+
+            <form id="search-form" class="search-form">
+                <label for="search-input" class="sr-only">
+                    What do you want to research?
+                </label>
+
+                <span class="search-icon" aria-hidden="true">⌕</span>
+
+                <input
+                    id="search-input"
+                    type="search"
+                    placeholder="Ask a question or explore a topic..."
+                    required
+                >
+
+                <button id="search-button" type="submit">
+                    Search <span aria-hidden="true">↗</span>
+                </button>
+            </form>
+
+            <div class="search-options">
+                <label for="result-count">Results to fetch :</label>
+
+                <select id="result-count">
+                    <option value="3" selected>3 results</option>
+                    <option value="5">5 results</option>
+                    <option value="10">10 results</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="results-section" aria-live="polite">
+            
+            <div class="results-heading">
+                <div>
+                    <span class="eyebrow">DISCOVER</span>
+                    <h2 id="results-title">Ready to explore?</h2>
+                    <button id="refresh-briefing" type="button">
+                        ↻
+                    </button>
+                </div>
+
+                <span id="results-count" class="results-count"></span>
+            </div>
+
+            <p id="status-message" class="status-message">
+                Your research results will appear here.
+            </p>
+
+            <div id="results-list" class="results-list"></div>
+        </section>
+
+        <footer class="footer">
+            <span>ResearchMate</span>
+            <span>Curiosity is a great place to start.</span>
+        </footer>
+    </main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Secret API keys and environment variables
+.env
+.env.*
+
+# Allow an example template if you create one later
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+
+# Editor settings
+.vscode/
