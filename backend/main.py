@@ -1,10 +1,10 @@
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import FastAPI to create the API application.#
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI
 
-from backend.services.search_service import search_web
-from backend.services.news_service import get_daily_news
+from backend.api.routes.search import router as search_router
+from backend.api.routes.briefing import router as briefing_router
 import logging
 from backend.logging_config import setup_logging
 
@@ -25,37 +25,5 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def home():
-    return {"message": "AI Research Assistant API is running!"}
-
-
-@app.get("/search")
-def search(
-    q: str = Query(..., min_length=1, description="Topic to research"),
-    count: int = Query(3, ge=1, le=10, description="Number of results"),
-):
-    try:
-        results = search_web(q, count)
-        return {"query": q, "count": len(results), "results": results}
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error))
-
-
-@app.get("/daily-briefing")
-def daily_briefing():
-    try:
-        briefing = get_daily_news()
-
-        total_articles = sum(len(articles) for articles in briefing.values())
-
-        return {
-            "categories": briefing,
-            "total_articles": total_articles,
-        }
-
-    except ValueError as error:
-        raise HTTPException(
-            status_code=400,
-            detail=str(error),
-        ) from error
+app.include_router(search_router)
+app.include_router(briefing_router)
