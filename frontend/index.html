@@ -1,96 +1,166 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ResearchMate helps you discover useful web sources for your research.">
-
+    <meta name="description" content="ResearchMate — Editorial AI research and news intelligence platform.">
     <title>ResearchMate — AI Research Assistant</title>
-
     <link rel="stylesheet" href="style.css">
     <script src="app.js" defer></script>
 </head>
 
 <body>
-    <header class="navbar">
-        <a class="brand" href="index.html">
-            <span class="brand-icon">R</span>
-            <span>ResearchMate</span>
-        </a>
-
-        <span class="nav-label">AI RESEARCH WORKSPACE</span>
-    </header>
-
-    <main class="container">
-        <section class="hero">
-            <span class="eyebrow">YOUR RESEARCH STARTS HERE</span>
-
-            <h1>
-                Good research starts<br>
-                with <span>better questions.</span>
-            </h1>
-
-            <p class="subtitle">
-                Explore topics, discover useful sources, and bring
-                your next big idea into focus.
-            </p>
-
-            <form id="search-form" class="search-form">
-                <label for="search-input" class="sr-only">
-                    What do you want to research?
-                </label>
-
-                <span class="search-icon" aria-hidden="true">⌕</span>
-
-                <input
-                    id="search-input"
-                    type="search"
-                    placeholder="Ask a question or explore a topic..."
-                    required
-                >
-
-                <button id="search-button" type="submit">
-                    Search <span aria-hidden="true">↗</span>
-                </button>
-            </form>
-
-            <div class="search-options">
-                <label for="result-count">Results to fetch :</label>
-
-                <select id="result-count">
-                    <option value="3" selected>3 results</option>
-                    <option value="5">5 results</option>
-                    <option value="10">10 results</option>
-                </select>
+    <div class="dashboard-layout">
+        <!-- Editorial Dark Charcoal Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a class="brand" href="index.html">
+                    <span class="brand-icon">R</span>
+                    <div class="brand-info">
+                        <span class="brand-title">ResearchMate</span>
+                        <span class="brand-subtitle">Intelligence</span>
+                    </div>
+                </a>
             </div>
-        </section>
 
-        <section class="results-section" aria-live="polite">
-            
-            <div class="results-heading">
-                <div>
-                    <span class="eyebrow">DISCOVER</span>
-                    <h2 id="results-title">Ready to explore?</h2>
-                    <button id="refresh-briefing" type="button">
-                        ↻
-                    </button>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">WORKSPACES</div>
+                <div class="nav-item active">
+                    <span class="nav-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </span>
+                    <span>Intelligence Feed</span>
+                    <span class="nav-badge">Live</span>
                 </div>
 
-                <span id="results-count" class="results-count"></span>
+                <div class="nav-section-label">TOPIC CHANNELS</div>
+                <ul class="channel-list">
+                    <li class="channel-item">
+                        <span class="channel-dot dot-blue"></span>
+                        <span>AI & Research</span>
+                    </li>
+                    <li class="channel-item">
+                        <span class="channel-dot dot-violet"></span>
+                        <span>Global Tech</span>
+                    </li>
+                    <li class="channel-item">
+                        <span class="channel-dot dot-indigo"></span>
+                        <span>Developer News</span>
+                    </li>
+                    <li class="channel-item">
+                        <span class="channel-dot dot-pink"></span>
+                        <span>Jobs & Internships</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <span class="status-indicator"></span>
+                    <div class="status-meta">
+                        <span class="status-name">Octen Intelligence</span>
+                        <span class="status-desc">FastAPI Engine Ready</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Editorial Workspace -->
+        <main class="main-content">
+            <!-- Compact Integrated Header -->
+            <header class="workspace-header">
+                <div class="header-breadcrumb">
+                    <span class="crumb-root">Workspace</span>
+                    <span class="crumb-sep">/</span>
+                    <span class="crumb-current">Daily Intelligence</span>
+                </div>
+            </header>
+
+            <div class="workspace-body">
+                <!-- Search & Discovery Section -->
+                <section class="search-panel">
+                    <div class="search-panel-header">
+                        <h1>Good research starts with <span>better questions.</span></h1>
+                        <p class="search-subtitle">
+                            Explore verified sources, research insights, and daily technology developments.
+                        </p>
+                    </div>
+
+                    <form id="search-form" class="search-form">
+                        <label for="search-input" class="sr-only">
+                            What do you want to research?
+                        </label>
+
+                        <span class="search-icon" aria-hidden="true">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+
+                        <input
+                            id="search-input"
+                            type="search"
+                            placeholder="Ask a question or enter a research topic..."
+                            required
+                        >
+
+                        <div class="search-controls">
+                            <div class="result-count-wrapper">
+                                <label for="result-count" class="sr-only">Results to fetch:</label>
+                                <select id="result-count" title="Select number of results">
+                                    <option value="3" selected>3 results</option>
+                                    <option value="5">5 results</option>
+                                    <option value="10">10 results</option>
+                                </select>
+                            </div>
+
+                            <button id="search-button" type="submit">
+                                <span>Search</span>
+                                <span class="btn-arrow" aria-hidden="true">↗</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Results & Briefing Section -->
+                <section class="results-section" aria-live="polite">
+                    <div class="results-heading">
+                        <div class="heading-left">
+                            <span class="eyebrow">DISCOVER</span>
+                            <div class="title-action-group">
+                                <h2 id="results-title">Ready to explore?</h2>
+                                <button id="refresh-briefing" type="button" title="Refresh daily briefing" aria-label="Refresh daily briefing">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <span id="results-count" class="results-count"></span>
+                    </div>
+
+                    <p id="status-message" class="status-message">
+                        Your research results will appear here.
+                    </p>
+
+                    <div id="results-list" class="results-list"></div>
+                </section>
             </div>
 
-            <p id="status-message" class="status-message">
-                Your research results will appear here.
-            </p>
-
-            <div id="results-list" class="results-list"></div>
-        </section>
-
-        <footer class="footer">
-            <span>ResearchMate</span>
-            <span>Curiosity is a great place to start.</span>
-        </footer>
-    </main>
+            <footer class="footer">
+                <span>ResearchMate &bull; Research & News Intelligence</span>
+                <span>Powered by FastAPI & Octen Engine</span>
+            </footer>
+        </main>
+    </div>
 </body>
 </html>

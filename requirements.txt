@@ -1,5 +1,14 @@
+# Core Backend Framework
 fastapi>=0.115.0
 uvicorn>=0.30.0
+
+# Environment & Networking
 python-dotenv>=1.0.0
 requests>=2.32.0
+
+# Search & Intelligence Engine
 octen>=0.10.0
+
+# Testing & TestClient Dependencies
+httpx>=0.27.0
+pytest>=8.0.0

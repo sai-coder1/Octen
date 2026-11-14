@@ -5,8 +5,11 @@ from fastapi import FastAPI
 
 from backend.api.routes.search import router as search_router
 from backend.api.routes.briefing import router as briefing_router
+from backend.api.routes.stats import router as stats_router
+
 import logging
 from backend.logging_config import setup_logging
+from backend.services.search_service import get_search_stats
 
 setup_logging()
 
@@ -27,3 +30,4 @@ app.add_middleware(
 
 app.include_router(search_router)
 app.include_router(briefing_router)
+app.include_router(stats_router)
