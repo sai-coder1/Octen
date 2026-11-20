@@ -1,6 +1,6 @@
 // ==========================================================================
 // ResearchMate - Editorial Research & News Intelligence Platform
-// Vanilla JavaScript Implementation
+// High-Contrast Editorial Light Mode & Bento Layout Architecture
 // ==========================================================================
 
 // ---------- 1. DOM Element Bindings ----------
@@ -8,111 +8,189 @@ const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
 const resultCount = document.getElementById("result-count");
 const searchButton = document.getElementById("search-button");
+const searchKbd = document.getElementById("search-kbd");
 
 const resultsTitle = document.getElementById("results-title");
 const resultsCount = document.getElementById("results-count");
 const statusMessage = document.getElementById("status-message");
 const resultsList = document.getElementById("results-list");
-
 const refreshButton = document.getElementById("refresh-briefing");
 
-// Connect to FastAPI backend
-const API_URL = "http://127.0.0.1:8000";
+// Telemetry Pill & Popover
+const telemetryPill = document.getElementById("telemetry-pill");
+const telemetryPopover = document.getElementById("telemetry-popover");
+const telemetryClose = document.getElementById("telemetry-close");
+const telemetryRate = document.getElementById("telemetry-rate");
+const telemetryLatency = document.getElementById("telemetry-latency");
 
-// ---------- 2. Editorial Category Mapping ----------
-function getCategoryColorClass(category) {
-    const normalized = (category || "").toLowerCase();
-    if (normalized.includes("ai") || normalized.includes("research")) {
-        return "category-blue";
-    }
-    if (normalized.includes("global") || normalized.includes("tech")) {
-        return "category-violet";
-    }
-    if (normalized.includes("developer") || normalized.includes("code") || normalized.includes("program")) {
-        return "category-indigo";
-    }
-    if (normalized.includes("job") || normalized.includes("intern")) {
-        return "category-pink";
-    }
-    return "category-default";
+// Bento Metrics
+const bentoHitRate = document.getElementById("bento-hit-rate");
+const bentoHits = document.getElementById("bento-hits");
+const bentoMisses = document.getElementById("bento-misses");
+const bentoEvictions = document.getElementById("bento-evictions");
+const bentoApiAttempts = document.getElementById("bento-api-attempts");
+const bentoLatency = document.getElementById("bento-latency");
+
+// Editorial Tabs
+const briefingTabs = document.getElementById("briefing-tabs");
+const tabButtons = briefingTabs ? briefingTabs.querySelectorAll(".tab-item") : [];
+
+// Connect to FastAPI backend
+const API_URL = "https://octen.onrender.com";
+
+// In-Memory Briefing Cache
+let currentBriefingData = null;
+let activeCategory = "all";
+
+// ---------- 2. Keyboard Shortcut Detection ----------
+if (searchKbd) {
+    const isMac = (navigator.platform || "").toUpperCase().includes("MAC") || 
+                  (navigator.userAgent || "").toUpperCase().includes("MAC");
+    searchKbd.textContent = isMac ? "⌘K" : "Ctrl+K";
 }
 
-function getCategoryDotClass(category) {
+window.addEventListener("keydown", (event) => {
+    // Focus search on "/" or "Cmd+K" / "Ctrl+K"
+    const isSearchShortcut = 
+        (event.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) ||
+        ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k");
+
+    if (isSearchShortcut) {
+        event.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
+
+    // Close popover on Escape
+    if (event.key === "Escape" && telemetryPopover && !telemetryPopover.hidden) {
+        closeTelemetryPopover();
+    }
+});
+
+// ---------- 3. Backend Telemetry Controller (GET /stats) ----------
+async function fetchStats() {
+    if (!telemetryPill) return;
+
+    try {
+        const startTime = performance.now();
+        const response = await fetch(`${API_URL}/stats`);
+        const latencyMs = Math.max(1, Math.round(performance.now() - startTime));
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const cache = data.cache || {};
+
+        const hitRate = cache.hit_rate !== undefined ? `${cache.hit_rate}%` : "0%";
+        const hits = cache.hits || 0;
+        const misses = cache.misses || 0;
+        const evictions = cache.evictions || 0;
+        const apiAttempts = data.api_attempts || 0;
+
+        // Update Pill in Utility Bar
+        telemetryRate.textContent = hitRate;
+        telemetryLatency.textContent = `${latencyMs}ms`;
+
+        // Update Bento Popover Tiles
+        if (bentoHitRate) bentoHitRate.textContent = hitRate;
+        if (bentoHits) bentoHits.textContent = String(hits);
+        if (bentoMisses) bentoMisses.textContent = String(misses);
+        if (bentoEvictions) bentoEvictions.textContent = String(evictions);
+        if (bentoApiAttempts) bentoApiAttempts.textContent = String(apiAttempts);
+        if (bentoLatency) bentoLatency.textContent = `${latencyMs}ms`;
+
+    } catch (error) {
+        // Silently fail telemetry on disconnect
+        console.warn("Telemetry polling unavailable:", error.message);
+    }
+}
+
+function openTelemetryPopover() {
+    if (!telemetryPopover) return;
+    telemetryPopover.hidden = false;
+    telemetryPill.setAttribute("aria-expanded", "true");
+}
+
+function closeTelemetryPopover() {
+    if (!telemetryPopover) return;
+    telemetryPopover.hidden = true;
+    telemetryPill.setAttribute("aria-expanded", "false");
+}
+
+if (telemetryPill) {
+    telemetryPill.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isExpanded = telemetryPill.getAttribute("aria-expanded") === "true";
+        if (isExpanded) {
+            closeTelemetryPopover();
+        } else {
+            openTelemetryPopover();
+        }
+    });
+}
+
+if (telemetryClose) {
+    telemetryClose.addEventListener("click", (event) => {
+        event.stopPropagation();
+        closeTelemetryPopover();
+    });
+}
+
+document.addEventListener("click", (event) => {
+    if (telemetryPopover && !telemetryPopover.hidden) {
+        if (!telemetryPopover.contains(event.target) && !telemetryPill.contains(event.target)) {
+            closeTelemetryPopover();
+        }
+    }
+});
+
+// ---------- 4. Editorial Category Mapping ----------
+function getCategoryColorClass(category) {
     const normalized = (category || "").toLowerCase();
-    if (normalized.includes("ai") || normalized.includes("research")) return "dot-blue";
-    if (normalized.includes("global") || normalized.includes("tech")) return "dot-violet";
-    if (normalized.includes("developer")) return "dot-indigo";
-    if (normalized.includes("job") || normalized.includes("intern")) return "dot-pink";
-    return "dot-blue";
+    if (normalized.includes("ai") || normalized.includes("research")) return "category-blue";
+    if (normalized.includes("global") || normalized.includes("tech")) return "category-violet";
+    if (normalized.includes("developer") || normalized.includes("code")) return "category-indigo";
+    if (normalized.includes("job") || normalized.includes("intern")) return "category-pink";
+    return "category-default";
 }
 
 function getPlaceholderTheme(category) {
     const normalized = (category || "").toLowerCase();
     if (normalized.includes("ai") || normalized.includes("research")) {
         return {
-            themeClass: "placeholder-blue",
             label: "AI & Research",
-            svg: `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                </svg>
-            `
+            svg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>`
         };
     }
     if (normalized.includes("global") || normalized.includes("tech")) {
         return {
-            themeClass: "placeholder-violet",
             label: "Global Tech",
-            svg: `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                </svg>
-            `
+            svg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>`
         };
     }
-    if (normalized.includes("developer") || normalized.includes("code") || normalized.includes("program")) {
+    if (normalized.includes("developer") || normalized.includes("code")) {
         return {
-            themeClass: "placeholder-indigo",
             label: "Developer News",
-            svg: `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-            `
+            svg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`
         };
     }
     if (normalized.includes("job") || normalized.includes("intern")) {
         return {
-            themeClass: "placeholder-pink",
             label: "Jobs & Careers",
-            svg: `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-            `
+            svg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`
         };
     }
     return {
-        themeClass: "placeholder-blue",
         label: "Research Source",
-        svg: `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-        `
+        svg: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`
     };
 }
 
-// ---------- 3. Tasteful Editorial Visual Placeholder ----------
+// ---------- 5. Tasteful Category-Based Visual Placeholder ----------
 function createCategoryPlaceholder(category) {
-    const { themeClass, label, svg } = getPlaceholderTheme(category);
+    const { label, svg } = getPlaceholderTheme(category);
     const placeholder = document.createElement("div");
-    placeholder.className = `category-placeholder ${themeClass}`;
+    placeholder.className = "category-placeholder";
     placeholder.innerHTML = `
         <div class="placeholder-icon-circle">
             ${svg}
@@ -122,7 +200,7 @@ function createCategoryPlaceholder(category) {
     return placeholder;
 }
 
-// ---------- 4. Thumbnail Element Builder ----------
+// ---------- 6. Thumbnail Element Builder ----------
 function createThumbnailElement(article, category) {
     const wrapper = document.createElement("div");
     wrapper.className = "card-thumbnail-wrapper";
@@ -135,7 +213,7 @@ function createThumbnailElement(article, category) {
                 safeImageUrl = parsed.href;
             }
         } catch {
-            // Invalid image URL
+            // Invalid image URL format
         }
     }
 
@@ -147,7 +225,7 @@ function createThumbnailElement(article, category) {
         img.loading = "lazy";
         img.decoding = "async";
 
-        // Fallback gracefully when image fails to load
+        // Graceful fallback to category placeholder if image fails to load
         img.onerror = function () {
             wrapper.replaceChildren(createCategoryPlaceholder(category));
         };
@@ -160,7 +238,7 @@ function createThumbnailElement(article, category) {
     return wrapper;
 }
 
-// ---------- 5. Favicon Fallback Builder ----------
+// ---------- 7. Favicon Fallback Builder ----------
 function createFaviconFallback() {
     const fallback = document.createElement("span");
     fallback.className = "article-favicon-fallback";
@@ -174,7 +252,7 @@ function createFaviconFallback() {
     return fallback;
 }
 
-// ---------- 6. Skeleton Loading Helpers ----------
+// ---------- 8. Skeleton Loading Helpers ----------
 function createSkeletonCard() {
     const skeleton = document.createElement("div");
     skeleton.className = "skeleton-card";
@@ -199,31 +277,30 @@ function createSkeletonCard() {
     return skeleton;
 }
 
-function renderSkeletons(count = 3, isBriefing = false) {
+function renderSkeletons(count = 6, isBriefing = false) {
     resultsList.replaceChildren();
 
     if (isBriefing) {
-        const categoryTitles = ["AI & Research", "Global Tech"];
-        categoryTitles.forEach((title) => {
+        const categories = ["AI & Research", "Global Tech"];
+        categories.forEach((cat) => {
             const section = document.createElement("section");
             section.className = "briefing-category";
 
             const header = document.createElement("div");
             header.className = "category-header";
             header.innerHTML = `
-                <span class="category-header-dot ${getCategoryDotClass(title)}"></span>
-                <h3>${title}</h3>
+                <span class="category-header-dot"></span>
+                <h3>${cat}</h3>
                 <span class="category-header-count">Loading intelligence...</span>
             `;
             section.appendChild(header);
 
             const grid = document.createElement("div");
             grid.className = "briefing-grid";
-            grid.appendChild(createSkeletonCard());
-            grid.appendChild(createSkeletonCard());
-            grid.appendChild(createSkeletonCard());
+            for (let i = 0; i < 3; i++) {
+                grid.appendChild(createSkeletonCard());
+            }
             section.appendChild(grid);
-
             resultsList.appendChild(section);
         });
     } else {
@@ -236,7 +313,7 @@ function renderSkeletons(count = 3, isBriefing = false) {
     }
 }
 
-// ---------- 7. Reusable Article Card Component ----------
+// ---------- 9. Reusable Editorial Article Card Component ----------
 function createArticleCard(article, category = "Research", index = 0) {
     const card = document.createElement("article");
     card.className = "result-card";
@@ -278,7 +355,7 @@ function createArticleCard(article, category = "Research", index = 0) {
 
     header.append(badge, number);
 
-    // Article Title with Favicon
+    // Article Title in Newsreader Serif with Favicon
     const headingWrapper = document.createElement("div");
     headingWrapper.className = "result-card-heading";
 
@@ -309,14 +386,14 @@ function createArticleCard(article, category = "Research", index = 0) {
     }
     headingWrapper.appendChild(heading);
 
-    // Article Summary (Clamped description for height consistency)
+    // Article Summary in Plus Jakarta Sans
     const description = document.createElement("p");
     description.className = "article-summary";
     description.textContent = article.highlight || article.description || "No description available.";
 
     cardBody.append(header, headingWrapper, description);
 
-    // 3. Card Footer (Domain and Article Link)
+    // 3. Card Footer (Domain and Cobalt Blue Article Link)
     const footer = document.createElement("div");
     footer.className = "article-footer";
 
@@ -337,12 +414,94 @@ function createArticleCard(article, category = "Research", index = 0) {
         footer.appendChild(link);
     }
 
-    // Assemble Card
     card.append(thumbnail, cardBody, footer);
     return card;
 }
 
-// ---------- 8. Daily Briefing Controller ----------
+// ---------- 10. Daily Briefing Renderer (with Editorial Tab Filtering) ----------
+function renderBriefingContent() {
+    if (!currentBriefingData) return;
+
+    resultsList.replaceChildren();
+
+    if (activeCategory === "all") {
+        resultsTitle.textContent = "Today's Research Briefing";
+        
+        let totalCount = 0;
+        for (const [category, articles] of Object.entries(currentBriefingData)) {
+            if (!Array.isArray(articles) || articles.length === 0) continue;
+            totalCount += articles.length;
+
+            const categorySection = document.createElement("section");
+            categorySection.className = "briefing-category";
+
+            const categoryHeader = document.createElement("div");
+            categoryHeader.className = "category-header";
+            categoryHeader.innerHTML = `
+                <span class="category-header-dot"></span>
+                <h3>${category}</h3>
+                <span class="category-header-count">${articles.length} sources</span>
+            `;
+            categorySection.appendChild(categoryHeader);
+
+            const grid = document.createElement("div");
+            grid.className = "briefing-grid";
+
+            articles.forEach((article, index) => {
+                grid.appendChild(createArticleCard(article, category, index));
+            });
+
+            categorySection.appendChild(grid);
+            resultsList.appendChild(categorySection);
+        }
+
+        resultsCount.textContent = `${totalCount} reports`;
+        statusMessage.className = "status-message";
+        statusMessage.textContent = "Latest verified research and industry developments.";
+
+    } else {
+        const articles = currentBriefingData[activeCategory] || [];
+        resultsTitle.textContent = `${activeCategory} Intelligence`;
+        resultsCount.textContent = `${articles.length} sources`;
+
+        if (articles.length === 0) {
+            statusMessage.className = "status-message";
+            statusMessage.textContent = `No reports currently available in ${activeCategory}.`;
+            return;
+        }
+
+        statusMessage.className = "status-message";
+        statusMessage.textContent = `Displaying curated sources in ${activeCategory}.`;
+
+        const grid = document.createElement("div");
+        grid.className = "briefing-grid";
+
+        articles.forEach((article, index) => {
+            grid.appendChild(createArticleCard(article, activeCategory, index));
+        });
+
+        resultsList.appendChild(grid);
+    }
+}
+
+// Tab Switching Listener
+if (tabButtons.length > 0) {
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            tabButtons.forEach((b) => b.classList.remove("active"));
+            button.classList.add("active");
+            activeCategory = button.dataset.category || "all";
+
+            if (currentBriefingData) {
+                renderBriefingContent();
+            } else {
+                loadDailyBriefing();
+            }
+        });
+    });
+}
+
+// ---------- 11. Daily Briefing Controller (GET /daily-briefing) ----------
 async function loadDailyBriefing() {
     resultsTitle.textContent = "Today's Research Briefing";
     resultsCount.textContent = "";
@@ -353,8 +512,7 @@ async function loadDailyBriefing() {
     refreshButton.disabled = true;
     refreshButton.classList.add("loading");
 
-    // Render skeleton placeholders
-    renderSkeletons(3, true);
+    renderSkeletons(6, true);
 
     try {
         const response = await fetch(`${API_URL}/daily-briefing`);
@@ -364,45 +522,12 @@ async function loadDailyBriefing() {
         }
 
         const data = await response.json();
+        currentBriefingData = data.categories || {};
 
-        // Clear skeletons
-        resultsList.replaceChildren();
+        renderBriefingContent();
 
-        resultsTitle.textContent = "Today's Research Briefing";
-        resultsCount.textContent = `${data.total_articles || 0} reports`;
-
-        statusMessage.className = "status-message";
-        statusMessage.textContent = "Latest verified research and industry developments.";
-
-        // Render categories
-        if (data.categories && typeof data.categories === "object") {
-            for (const [category, articles] of Object.entries(data.categories)) {
-                if (!Array.isArray(articles) || articles.length === 0) continue;
-
-                const categorySection = document.createElement("section");
-                categorySection.className = "briefing-category";
-
-                const categoryHeader = document.createElement("div");
-                categoryHeader.className = "category-header";
-                categoryHeader.innerHTML = `
-                    <span class="category-header-dot ${getCategoryDotClass(category)}"></span>
-                    <h3>${category}</h3>
-                    <span class="category-header-count">${articles.length} sources</span>
-                `;
-                categorySection.appendChild(categoryHeader);
-
-                const grid = document.createElement("div");
-                grid.className = "briefing-grid";
-
-                articles.forEach((article, index) => {
-                    const card = createArticleCard(article, category, index);
-                    grid.appendChild(card);
-                });
-
-                categorySection.appendChild(grid);
-                resultsList.appendChild(categorySection);
-            }
-        }
+        // Refresh stats telemetry to reflect cache
+        fetchStats();
 
     } catch (error) {
         console.error("Daily briefing error:", error);
@@ -422,7 +547,7 @@ async function loadDailyBriefing() {
     }
 }
 
-// ---------- 9. Search Form Controller ----------
+// ---------- 12. Search Form Controller (GET /search) ----------
 searchForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -435,6 +560,9 @@ searchForm.addEventListener("submit", async (event) => {
         return;
     }
 
+    // Deactivate all briefing tabs to visually indicate search mode
+    tabButtons.forEach((b) => b.classList.remove("active"));
+
     // Loading State
     searchButton.disabled = true;
     searchButton.innerHTML = `<span>Searching...</span>`;
@@ -443,9 +571,8 @@ searchForm.addEventListener("submit", async (event) => {
     resultsCount.textContent = "";
 
     statusMessage.className = "status-message";
-    statusMessage.textContent = "Searching research sources...";
+    statusMessage.textContent = "Searching verified research sources via Octen...";
 
-    // Show skeletons matching requested count
     renderSkeletons(count, false);
 
     try {
@@ -479,17 +606,19 @@ searchForm.addEventListener("submit", async (event) => {
         }
 
         statusMessage.className = "status-message";
-        statusMessage.textContent = `Displaying ${data.results.length} sources retrieved via Octen.`;
+        statusMessage.textContent = `Displaying ${data.results.length} verified sources retrieved via Octen.`;
 
         const grid = document.createElement("div");
         grid.className = "search-results-grid";
 
         data.results.forEach((result, index) => {
-            const card = createArticleCard(result, "Search Result", index);
-            grid.appendChild(card);
+            grid.appendChild(createArticleCard(result, "Search Result", index));
         });
 
         resultsList.appendChild(grid);
+
+        // Update telemetry metrics after search
+        fetchStats();
 
     } catch (error) {
         console.error("Research search error:", error);
@@ -509,8 +638,9 @@ searchForm.addEventListener("submit", async (event) => {
     }
 });
 
-// ---------- 10. Event Listeners & Initialization ----------
+// ---------- 13. Event Listeners & Initialization ----------
 refreshButton.addEventListener("click", loadDailyBriefing);
 
-// Initialize application by loading the daily briefing
+// Initialize application on page load
 loadDailyBriefing();
+fetchStats();
