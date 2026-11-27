@@ -57,19 +57,45 @@ def test_successful_search(mock_search):
 def test_rate_limit_error(mock_search):
     mock_search.side_effect = OctenRateLimitError()
 
-    ##.side effect says the mock that Whenever someone calls me, raise this exception instead of returning a result.#
+    response = client.get(
+        "/search", params={"q": "artificial intelligence", "count": 3}
+    )
+
+    assert response.status_code == 429
+
+    assert response.json()["detail"] == (
+        "Search service rate limit reached. Please try again shortly."
+    )
+
+    mock_search.assert_called_once()
+
+
+@patch("backend.api.routes.search.search_web")
+def test_auth_error(mock_search):
+    from octen.core.exceptions import OctenAuthenticationError
+
+    mock_search.side_effect = OctenAuthenticationError()
 
     response = client.get(
         "/search", params={"q": "artificial intelligence", "count": 3}
     )
 
-    assert response.status_code == 503
+    assert response.status_code == 502
+    assert "authentication error" in response.json()["detail"].lower()
 
-    assert response.json()["detail"] == (
-        "Search service is temporarily busy. Please try again shortly."
+
+@patch("backend.api.routes.search.search_web")
+def test_timeout_error(mock_search):
+    from octen.core.exceptions import OctenTimeoutError
+
+    mock_search.side_effect = OctenTimeoutError()
+
+    response = client.get(
+        "/search", params={"q": "artificial intelligence", "count": 3}
     )
 
-    mock_search.assert_called_once()
+    assert response.status_code == 504
+    assert "unable to connect" in response.json()["detail"].lower()
 
 
 def test_search_uses_cache(monkeypatch):

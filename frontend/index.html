@@ -3,164 +3,568 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ResearchMate — Editorial AI research and news intelligence platform.">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="description" content="ResearchMate — High-Contrast Editorial AI Research Assistant & News Intelligence Platform.">
     <title>ResearchMate — AI Research Assistant</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="app.js" defer></script>
+
+    <!-- Google Fonts: Newsreader / Instrument Serif, Plus Jakarta Sans, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Supabase JS Client v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Configuration -->
+    <script src="config.js?v=2.0.1"></script>
+
+    <link rel="stylesheet" href="style.css?v=2.0.1">
+    <script src="app.js?v=2.0.1" defer></script>
 </head>
 
 <body>
-    <div class="dashboard-layout">
-        <!-- Editorial Dark Charcoal Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
+    <!-- Top Trending Utility Bar (Deep Blue Gradient) -->
+    <div class="news-top-bar">
+        <div class="news-top-bar-container">
+            <div class="top-bar-left">
+                <span class="ticker-badge">Trending</span>
+                <span id="top-ticker-text" class="ticker-text">Live Intelligence Briefing &bull; Octen Verified Sources &bull; LRU Cache Enabled</span>
+            </div>
+            <div class="top-bar-right">
+                <span id="top-bar-date" class="top-bar-date"></span>
+                <span class="top-bar-divider">|</span>
+                <div class="top-bar-telemetry">
+                    <span class="status-indicator-dot"></span>
+                    <span>System: <strong>Operational</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Editorial Navbar (Pure White) -->
+    <header class="utility-bar">
+        <div class="utility-container">
+            <!-- Brand Logo & Tagline -->
+            <div class="utility-left">
                 <a class="brand" href="index.html">
-                    <span class="brand-icon">R</span>
-                    <div class="brand-info">
-                        <span class="brand-title">ResearchMate</span>
-                        <span class="brand-subtitle">Intelligence</span>
+                    <div class="brand-square-logo">RM</div>
+                    <div class="brand-text-group">
+                        <span class="brand-name">RESEARCHMATE</span>
+                        <span class="brand-subtext">AI RESEARCH & NEWS INTELLIGENCE</span>
                     </div>
                 </a>
             </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section-label">WORKSPACES</div>
-                <div class="nav-item active">
-                    <span class="nav-icon" aria-hidden="true">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </span>
-                    <span>Intelligence Feed</span>
-                    <span class="nav-badge">Live</span>
-                </div>
-
-                <div class="nav-section-label">TOPIC CHANNELS</div>
-                <ul class="channel-list">
-                    <li class="channel-item">
-                        <span class="channel-dot dot-blue"></span>
-                        <span>AI & Research</span>
-                    </li>
-                    <li class="channel-item">
-                        <span class="channel-dot dot-violet"></span>
-                        <span>Global Tech</span>
-                    </li>
-                    <li class="channel-item">
-                        <span class="channel-dot dot-indigo"></span>
-                        <span>Developer News</span>
-                    </li>
-                    <li class="channel-item">
-                        <span class="channel-dot dot-pink"></span>
-                        <span>Jobs & Internships</span>
-                    </li>
-                </ul>
+            <!-- Center Navigation Channels (Active on Dashboard) -->
+            <nav class="nav-center-channels" aria-label="Quick Navigation">
+                <a href="#hero-showcase" class="nav-channel-link active">Top Stories</a>
+                <a href="#trending-section" class="nav-channel-link">Trending</a>
+                <a href="#featured-section" class="nav-channel-link">Intelligence Feed</a>
+                <a href="#search-section" class="nav-channel-link">Search</a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="system-status">
-                    <span class="status-indicator"></span>
-                    <div class="status-meta">
-                        <span class="status-name">Octen Intelligence</span>
-                        <span class="status-desc">FastAPI Engine Ready</span>
+            <!-- Right Controls: Telemetry Pill + User Profile -->
+            <div class="utility-right">
+                <!-- Live System Telemetry Pill (Visible on Dashboard) -->
+                <div id="telemetry-wrapper" class="telemetry-wrapper" hidden>
+                    <button id="telemetry-pill" class="telemetry-pill" type="button" aria-expanded="false" aria-controls="telemetry-popover" title="View backend cache performance and engineering metrics">
+                        <span class="telemetry-dot" aria-hidden="true"></span>
+                        <span class="telemetry-label">Hit Rate: <strong id="telemetry-rate">--%</strong> &bull; <span id="telemetry-latency">--ms</span></span>
+                        <svg class="telemetry-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- Telemetry Popover Modal -->
+                    <div id="telemetry-popover" class="telemetry-popover" hidden>
+                        <div class="popover-header">
+                            <div class="popover-title-group">
+                                <span class="popover-title">Backend Cache Telemetry</span>
+                                <span class="popover-status-badge">HEALTHY</span>
+                            </div>
+                            <button id="telemetry-close" class="popover-close" type="button" aria-label="Close telemetry modal">&times;</button>
+                        </div>
+
+                        <div class="telemetry-bento-grid">
+                            <div class="bento-tile bento-highlight">
+                                <span class="bento-label">CACHE HIT RATE</span>
+                                <span id="bento-hit-rate" class="bento-value status-hit">--%</span>
+                                <span class="bento-hint">Hits vs total requests</span>
+                            </div>
+
+                            <div class="bento-tile">
+                                <span class="bento-label">CACHE HITS</span>
+                                <span id="bento-hits" class="bento-value">0</span>
+                                <span class="bento-hint">Served from LRU</span>
+                            </div>
+
+                            <div class="bento-tile">
+                                <span class="bento-label">CACHE MISSES</span>
+                                <span id="bento-misses" class="bento-value">0</span>
+                                <span class="bento-hint">API calls made</span>
+                            </div>
+
+                            <div class="bento-tile">
+                                <span class="bento-label">EVICTIONS</span>
+                                <span id="bento-evictions" class="bento-value">0</span>
+                                <span class="bento-hint">LRU limit exceeded</span>
+                            </div>
+
+                            <div class="bento-tile">
+                                <span class="bento-label">OCTEN API CALLS</span>
+                                <span id="bento-api-attempts" class="bento-value">0</span>
+                                <span class="bento-hint">Total network calls</span>
+                            </div>
+
+                            <div class="bento-tile">
+                                <span class="bento-label">ROUND-TRIP LATENCY</span>
+                                <span id="bento-latency" class="bento-value">--ms</span>
+                                <span class="bento-hint">Client to backend</span>
+                            </div>
+                        </div>
+
+                        <div class="popover-footer">
+                            <span>Policy: Thread-safe LRU &bull; Capacity: 100 entries &bull; TTL: 600s</span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Authenticated User Profile Controls -->
+                <div id="nav-user-profile" class="nav-user-profile" hidden>
+                    <button id="nav-edit-topics-btn" class="nav-topics-btn" type="button" title="Edit your four selected research topics">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>Focus Topics (4)</span>
+                    </button>
+
+                    <div id="user-avatar-pill" class="user-avatar-pill" title="Signed in user">
+                        <span id="user-avatar-initials" class="user-avatar-initials">RM</span>
+                        <span id="user-email-text" class="user-email-text">user@example.com</span>
+                    </div>
+
+                    <button id="nav-sign-out-btn" class="nav-sign-out-btn" type="button" title="Sign out of ResearchMate">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Hamburger Button -->
+                <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" aria-expanded="false" aria-controls="mobile-nav-drawer" aria-label="Toggle navigation menu" title="Toggle navigation menu">
+                    <span class="hamburger-bar"></span>
+                    <span class="hamburger-bar"></span>
+                    <span class="hamburger-bar"></span>
+                </button>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Editorial Workspace -->
-        <main class="main-content">
-            <!-- Compact Integrated Header -->
-            <header class="workspace-header">
-                <div class="header-breadcrumb">
-                    <span class="crumb-root">Workspace</span>
-                    <span class="crumb-sep">/</span>
-                    <span class="crumb-current">Daily Intelligence</span>
-                </div>
-            </header>
-
-            <div class="workspace-body">
-                <!-- Search & Discovery Section -->
-                <section class="search-panel">
-                    <div class="search-panel-header">
-                        <h1>Good research starts with <span>better questions.</span></h1>
-                        <p class="search-subtitle">
-                            Explore verified sources, research insights, and daily technology developments.
-                        </p>
+        <!-- Collapsible Mobile Navigation Drawer -->
+        <div id="mobile-nav-drawer" class="mobile-nav-drawer" hidden>
+            <div class="mobile-nav-content">
+                <nav class="mobile-channel-links" aria-label="Mobile Navigation Channels">
+                    <a href="#hero-showcase" class="mobile-channel-link active">Top Stories</a>
+                    <a href="#trending-section" class="mobile-channel-link">Trending</a>
+                    <a href="#featured-section" class="mobile-channel-link">Intelligence Feed</a>
+                    <a href="#search-section" class="mobile-channel-link">Search</a>
+                </nav>
+                <div id="mobile-user-actions" class="mobile-user-actions" hidden>
+                    <div class="mobile-user-info-row">
+                        <div id="mobile-user-pill" class="user-avatar-pill">
+                            <span id="mobile-user-initials" class="user-avatar-initials">RM</span>
+                            <span id="mobile-user-email" class="user-email-text">user@example.com</span>
+                        </div>
                     </div>
-
-                    <form id="search-form" class="search-form">
-                        <label for="search-input" class="sr-only">
-                            What do you want to research?
-                        </label>
-
-                        <span class="search-icon" aria-hidden="true">
-                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <div class="mobile-buttons-row">
+                        <button id="mobile-edit-topics-btn" class="nav-topics-btn mobile-topics-btn" type="button">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                             </svg>
-                        </span>
-
-                        <input
-                            id="search-input"
-                            type="search"
-                            placeholder="Ask a question or enter a research topic..."
-                            required
-                        >
-
-                        <div class="search-controls">
-                            <div class="result-count-wrapper">
-                                <label for="result-count" class="sr-only">Results to fetch:</label>
-                                <select id="result-count" title="Select number of results">
-                                    <option value="3" selected>3 results</option>
-                                    <option value="5">5 results</option>
-                                    <option value="10">10 results</option>
-                                </select>
-                            </div>
-
-                            <button id="search-button" type="submit">
-                                <span>Search</span>
-                                <span class="btn-arrow" aria-hidden="true">↗</span>
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- Results & Briefing Section -->
-                <section class="results-section" aria-live="polite">
-                    <div class="results-heading">
-                        <div class="heading-left">
-                            <span class="eyebrow">DISCOVER</span>
-                            <div class="title-action-group">
-                                <h2 id="results-title">Ready to explore?</h2>
-                                <button id="refresh-briefing" type="button" title="Refresh daily briefing" aria-label="Refresh daily briefing">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                        <polyline points="1 20 1 14 7 14"></polyline>
-                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <span id="results-count" class="results-count"></span>
+                            <span>Focus Topics (4)</span>
+                        </button>
+                        <button id="mobile-sign-out-btn" class="nav-sign-out-btn mobile-sign-out-btn" type="button">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Sign Out</span>
+                        </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                    <p id="status-message" class="status-message">
-                        Your research results will appear here.
-                    </p>
-
-                    <div id="results-list" class="results-list"></div>
-                </section>
+    <!-- ====================================================================== -->
+    <!-- 1. AUTHENTICATION VIEW (Default for Unauthenticated Users)               -->
+    <!-- ====================================================================== -->
+    <section id="auth-view" class="auth-view">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-square-logo">RM</div>
+                <h1 class="auth-title">Welcome to ResearchMate</h1>
+                <p class="auth-subtitle">
+                    Authenticate to access your curated technology briefing, real-time research search, and personalized intelligence feed.
+                </p>
             </div>
 
-            <footer class="footer">
-                <span>ResearchMate &bull; Research & News Intelligence</span>
-                <span>Powered by FastAPI & Octen Engine</span>
-            </footer>
-        </main>
+            <!-- Google OAuth Action -->
+            <button id="google-auth-btn" class="google-auth-btn" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.04h3.88c2.28-2.09 3.66-5.17 3.66-9.14z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.13C3.27 21.39 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.28c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V6.59H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.41l4.03-3.13z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.61 1.25 6.59l4.03 3.13c.95-2.83 3.6-4.97 6.72-4.97z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="auth-divider">
+                <span>or continue with email</span>
+            </div>
+
+            <!-- Tab Switcher: Sign In vs Create Account -->
+            <div class="auth-tabs" role="tablist">
+                <button id="tab-signin" class="auth-tab-btn active" type="button" role="tab" aria-selected="true">Sign In</button>
+                <button id="tab-signup" class="auth-tab-btn" type="button" role="tab" aria-selected="false">Create Account</button>
+            </div>
+
+            <!-- Auth Form -->
+            <form id="auth-form" class="auth-form">
+                <div class="form-group">
+                    <label for="auth-email">Email Address</label>
+                    <input id="auth-email" type="email" placeholder="name@organization.com" autocomplete="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password" required minlength="6">
+                </div>
+
+                <!-- Error & Feedback Banner -->
+                <div id="auth-error" class="auth-error" hidden></div>
+
+                <button id="auth-submit-btn" class="auth-submit-btn" type="submit">
+                    <span>Sign In</span>
+                    <span class="btn-arrow" aria-hidden="true">→</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-note">
+                <span>Encrypted connection with Supabase Row Level Security.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- 2. PERSONALIZED ONBOARDING VIEW (/onboarding)                           -->
+    <!-- ====================================================================== -->
+    <section id="onboarding-view" class="onboarding-view" hidden>
+        <div class="onboarding-container">
+            <div class="onboarding-header">
+                <span class="onboarding-step-badge">STEP 1 OF 1 &bull; FOCUS DOMAIN SELECTION</span>
+                <h1 class="onboarding-title">Curate Your Intelligence Feed</h1>
+                <p class="onboarding-subtitle">
+                    Select <strong>exactly four research domains</strong> below. ResearchMate will synthesize your personalized daily briefing and verify real-time citations around these focus areas.
+                </p>
+
+                <div class="topic-counter-wrapper">
+                    <div id="topic-counter-pill" class="topic-counter-pill">
+                        <span class="counter-dot"></span>
+                        <span id="topic-counter">0 / 4</span>
+                        <span class="counter-label">topics selected</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="onboarding-error" class="onboarding-error-banner" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="onboarding-error-text"></span>
+            </div>
+
+            <!-- Topic Grid (12 Approved Topics) -->
+            <div id="topic-grid" class="topic-grid" role="group" aria-label="Approved Research Topics">
+                <!-- Topics will be dynamically rendered and validated by app.js -->
+            </div>
+
+            <div class="onboarding-action-row">
+                <button id="save-preferences-btn" class="primary-btn save-preferences-btn" type="button" disabled>
+                    <span>Continue to Research Dashboard</span>
+                    <span class="btn-arrow" aria-hidden="true">↗</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Figma Make Loading State Overlay: "PREPARING YOUR BRIEF" -->
+        <div id="onboarding-loading-overlay" class="loading-overlay" hidden>
+            <div class="loading-card">
+                <div class="loading-spinner-ring"></div>
+                <h2 class="loading-title">PREPARING YOUR BRIEF</h2>
+                <p class="loading-subtitle">
+                    Synthesizing real-time verified intelligence matching your focus domains...
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- 3. MAIN EDITORIAL RESEARCH DASHBOARD (Authenticated)                    -->
+    <!-- ====================================================================== -->
+    <main id="dashboard-view" class="page-container" hidden>
+        <!-- A. HERO SHOWCASE: Lead Story & Floating Secondary Cards -->
+        <section id="hero-showcase" class="hero-showcase-section">
+            <div id="hero-lead-banner" class="hero-lead-banner">
+                <!-- Background image and scrim dynamically injected -->
+                <div class="hero-scrim-overlay"></div>
+                
+                <div class="hero-content">
+                    <div class="hero-badge-row">
+                        <span id="hero-category-badge" class="news-category-badge">Artificial Intelligence</span>
+                        <span id="hero-source-domain" class="hero-source-domain">Octen Verified</span>
+                    </div>
+
+                    <h1 id="hero-title" class="hero-main-title">
+                        <a id="hero-title-link" href="#" target="_blank" rel="noopener noreferrer">
+                            Loading today's lead research breakthrough...
+                        </a>
+                    </h1>
+
+                    <div class="hero-meta-row">
+                        <div class="hero-author-group">
+                            <span class="hero-avatar-circle">RM</span>
+                            <span id="hero-author-name">Editorial Desk</span>
+                        </div>
+                        <span class="hero-meta-dot">&bull;</span>
+                        <span id="hero-meta-status">Octen Intelligence Verified</span>
+                    </div>
+                </div>
+
+                <!-- Floating Secondary Cards (Docked in Bottom-Right Corner) -->
+                <div id="hero-floating-cards" class="hero-floating-cards">
+                    <!-- 2 Secondary Cards Injected by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- B. TRENDING SECTION: 3-Column Magazine Layout -->
+        <section id="trending-section" class="magazine-section">
+            <div class="section-title-bar">
+                <div class="title-with-red-line">
+                    <h2 class="magazine-heading">Trending Research</h2>
+                    <span class="red-accent-rule"></span>
+                </div>
+
+                <!-- Underlined Editorial Tabs (Populated with User's 4 Topics) -->
+                <nav id="briefing-tabs" class="editorial-tabs" aria-label="Topic channels">
+                    <button class="tab-item active" data-category="all" type="button">All Channels</button>
+                </nav>
+            </div>
+
+            <!-- 3-Column Trending Grid -->
+            <div class="trending-grid-layout">
+                <!-- Left: Big Feature Card with Image Overlay -->
+                <div id="trending-lead-card" class="trending-lead-card">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Middle: 3 Stacked Horizontal Cards -->
+                <div id="trending-list-column" class="trending-list-column">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Right: Focus Domains Sidebar Widget -->
+                <div id="focus-topics-widget" class="focus-topics-widget">
+                    <div class="widget-header">
+                        <span class="widget-pill-badge">Categories</span>
+                        <h3 class="widget-title">Focus Domains</h3>
+                    </div>
+                    <div id="widget-topics-list" class="widget-topics-list">
+                        <!-- Populated dynamically with user's 4 topics -->
+                    </div>
+                    <div class="widget-action-footer">
+                        <button id="widget-edit-topics-btn" class="widget-action-btn" type="button">
+                            <span>Edit Focus Areas</span>
+                            <span aria-hidden="true">&rarr;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- C. SEARCH SECTION: Prominent Editorial Search Hero -->
+        <section id="search-section" class="search-hero">
+            <div class="hero-header">
+                <h2>Good research starts with <em>better questions.</em></h2>
+                <p class="search-subtitle">
+                    Real-time web intelligence, verified sources, and curated technology briefings.
+                </p>
+            </div>
+
+            <form id="search-form" class="search-form">
+                <label for="search-input" class="sr-only">
+                    What do you want to research?
+                </label>
+
+                <span class="search-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+
+                <input
+                    id="search-input"
+                    type="search"
+                    placeholder="Ask a question or enter a research topic..."
+                    required
+                >
+
+                <kbd id="search-kbd" class="search-kbd" title="Press / or ⌘K to focus search">⌘K</kbd>
+
+                <div class="search-controls">
+                    <div class="result-count-wrapper">
+                        <label for="result-count" class="sr-only">Results to fetch:</label>
+                        <select id="result-count" title="Select number of results">
+                            <option value="3" selected>3 results</option>
+                            <option value="5">5 results</option>
+                            <option value="10">10 results</option>
+                        </select>
+                    </div>
+
+                    <button id="search-button" type="submit">
+                        <span>Search</span>
+                        <span class="btn-arrow" aria-hidden="true">↗</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- D. FEATURED INTELLIGENCE & TELEMETRY SECTION -->
+        <section id="featured-section" class="magazine-section" aria-live="polite">
+            <div class="section-title-bar">
+                <div class="title-with-red-line">
+                    <h2 id="results-title" class="magazine-heading">Featured Intelligence</h2>
+                    <span class="red-accent-rule"></span>
+                </div>
+
+                <div class="heading-actions">
+                    <span id="results-count" class="results-count"></span>
+                    <button id="refresh-briefing" class="refresh-briefing-btn" type="button" title="Refresh briefing" aria-label="Refresh daily briefing">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feedback & Status Message -->
+            <p id="status-message" class="status-message">
+                Fetching today's verified research intelligence...
+            </p>
+
+            <div class="featured-content-layout">
+                <!-- Main Feed Grid -->
+                <div id="results-list" class="results-list"></div>
+
+                <!-- Side Telemetry Card (Mirrors Social Feed Widget in Screenshot) -->
+                <aside id="telemetry-widget-card" class="telemetry-widget-card">
+                    <div class="widget-header">
+                        <span class="widget-pill-badge red">Telemetry</span>
+                        <h3 class="widget-title">Engine Health</h3>
+                    </div>
+
+                    <div class="telemetry-widget-body">
+                        <div class="telemetry-widget-row">
+                            <span class="telemetry-widget-label">CACHE HIT RATE</span>
+                            <span id="widget-hit-rate" class="telemetry-widget-val emerald">--%</span>
+                        </div>
+                        <div class="telemetry-widget-row">
+                            <span class="telemetry-widget-label">CACHE HITS</span>
+                            <span id="widget-hits" class="telemetry-widget-val">0</span>
+                        </div>
+                        <div class="telemetry-widget-row">
+                            <span class="telemetry-widget-label">API ATTEMPTS</span>
+                            <span id="widget-api-attempts" class="telemetry-widget-val">0</span>
+                        </div>
+                        <div class="telemetry-widget-row">
+                            <span class="telemetry-widget-label">CLIENT LATENCY</span>
+                            <span id="widget-latency" class="telemetry-widget-val">--ms</span>
+                        </div>
+                    </div>
+
+                    <div class="telemetry-widget-footer">
+                        <span class="pulse-dot"></span>
+                        <span>LRU Cache Active &bull; 100 Cap &bull; 600s TTL</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- E. FOOTER -->
+        <footer class="page-footer">
+            <div class="footer-meta">
+                <div class="footer-logo">
+                    <span class="brand-square-logo small">RM</span>
+                    <span class="footer-brand">ResearchMate</span>
+                </div>
+                <span>Editorial AI Research & News Intelligence Platform</span>
+            </div>
+            <div class="footer-links">
+                <span>FastAPI Engine</span>
+                <span class="footer-sep">&bull;</span>
+                <span>Octen Intelligence</span>
+                <span class="footer-sep">&bull;</span>
+                <span>LRU Memory Cache</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- ====================================================================== -->
+    <!-- 4. EDIT PREFERENCES MODAL (Accessible Anytime from Header or Sidebar)   -->
+    <!-- ====================================================================== -->
+    <div id="edit-preferences-modal" class="modal-backdrop" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h2 class="modal-title">Edit Focus Areas</h2>
+                    <p class="modal-subtitle">Select exactly four domains for your personalized daily briefing.</p>
+                </div>
+                <button id="modal-close-btn" class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+            </div>
+
+            <div class="modal-counter-row">
+                <span id="modal-topic-counter-badge" class="topic-counter-pill">
+                    <span class="counter-dot"></span>
+                    <span id="modal-topic-counter">4 / 4</span>
+                    <span class="counter-label">selected</span>
+                </span>
+            </div>
+
+            <div id="modal-topic-grid" class="topic-grid modal-topic-grid">
+                <!-- Dynamically rendered -->
+            </div>
+
+            <div id="modal-error" class="onboarding-error-banner" hidden></div>
+
+            <div class="modal-footer">
+                <button id="modal-cancel-btn" class="secondary-btn" type="button">Cancel</button>
+                <button id="modal-save-btn" class="primary-btn" type="button">Update Preferences</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>

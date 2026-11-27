@@ -10,14 +10,26 @@ class SearchResult(BaseModel):
     # URL of the webpage.
     url: str
 
-    # Short description of the search result.
+    # Short excerpt of the search result.
     highlight: str
+
+    # Cleaned narrative summary/excerpt (preserves original meaning)
+    summary: str | None = None
+
+    # Description alias for frontend compatibility
+    description: str | None = None
 
     # Favicon is optional; defaults to None if missing.
     favicon: str | None = None
 
     # Article image or thumbnail URL; defaults to None if missing.
     image_url: str | None = None
+
+    # Publication date/time if available
+    time_published: str | None = None
+
+    # Author/byline if available
+    authors: str | None = None
 
 
 class SearchResponse(BaseModel):

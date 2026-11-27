@@ -32,3 +32,18 @@ app.add_middleware(
 app.include_router(search_router)
 app.include_router(briefing_router)
 app.include_router(stats_router)
+
+
+@app.get("/")
+def root():
+    return {
+        "status": "operational",
+        "service": "ResearchMate Backend API",
+        "ui_url": "http://127.0.0.1:5500",
+        "endpoints": {
+            "search": "/search?q={query}&count={count}",
+            "briefing": "/daily-briefing?topics={topic}",
+            "stats": "/stats",
+            "docs": "/docs",
+        },
+    }
