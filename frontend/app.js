@@ -7,7 +7,7 @@
 const config = window.RESEARCHMATE_CONFIG || {
     SUPABASE_URL: "https://your-project-id.supabase.co",
     SUPABASE_ANON_KEY: "your-anon-publishable-key-here",
-    API_URL: "http://127.0.0.1:8000"
+    API_URL: "https://octen.onrender.com"
 };
 
 // Intelligently resolve API URL: prefer local FastAPI backend when running locally in development
@@ -17,9 +17,9 @@ function resolveApiUrl() {
         if (config.API_URL && (config.API_URL.includes("localhost") || config.API_URL.includes("127.0.0.1"))) {
             return config.API_URL;
         }
-        return "http://127.0.0.1:8000";
+        return "https://octen.onrender.com";
     }
-    return config.API_URL || "http://127.0.0.1:8000";
+    return config.API_URL || "https://octen.onrender.com";
 }
 
 const API_URL = resolveApiUrl();
